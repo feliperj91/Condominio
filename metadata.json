@@ -1,0 +1,5 @@
+{
+  "name": "CondoGenius - Gestão de Condomínio",
+  "description": "Um aplicativo completo para gestão de condomínios, permitindo o cadastro de blocos, apartamentos, moradores, veículos e a gestão de encomendas com notificações inteligentes via Gemini AI.",
+  "requestFramePermissions": []
+}
