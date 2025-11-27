@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Package, Car, Building, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Package, Car, Building, LogOut, Shield } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'people', label: 'Pessoas', icon: Users },
     { id: 'packages', label: 'Encomendas', icon: Package },
     { id: 'parking', label: 'Estacionamento', icon: Car },
+    { id: 'access_control', label: 'Acessos', icon: Shield },
   ];
 
   return (
@@ -32,11 +33,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
             >
               <Icon size={20} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'} />
               <span className="font-medium">{item.label}</span>

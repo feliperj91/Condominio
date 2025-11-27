@@ -1,5 +1,5 @@
 import { supabase } from '../src/lib/supabase';
-import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from '../types';
+import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog, RolePermission } from '../types';
 
 // Helper to map DB types to App types
 const mapUnit = (u: any): Unit => ({
@@ -201,6 +201,31 @@ export const supabaseService = {
             spot_id: log.spotId,
             notes: log.notes
         });
+        if (error) throw error;
+    },
+
+    // Permissions
+    getPermissions: async (): Promise<RolePermission[]> => {
+        const { data, error } = await supabase.from('role_permissions').select('*').order('role').order('resource');
+        if (error) throw error;
+        return data.map((p: any) => ({
+            id: p.id,
+            role: p.role,
+            resource: p.resource,
+            canView: p.can_view,
+            canCreate: p.can_create,
+            canEdit: p.can_edit,
+            canDelete: p.can_delete
+        }));
+    },
+    updatePermission: async (id: string, updates: Partial<RolePermission>): Promise<void> => {
+        const dbUpdates: any = {};
+        if (updates.canView !== undefined) dbUpdates.can_view = updates.canView;
+        if (updates.canCreate !== undefined) dbUpdates.can_create = updates.canCreate;
+        if (updates.canEdit !== undefined) dbUpdates.can_edit = updates.canEdit;
+        if (updates.canDelete !== undefined) dbUpdates.can_delete = updates.canDelete;
+
+        const { error } = await supabase.from('role_permissions').update(dbUpdates).eq('id', id);
         if (error) throw error;
     }
 };

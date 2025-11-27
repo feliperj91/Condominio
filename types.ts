@@ -73,3 +73,13 @@ export interface DashboardStats {
   activeVisitors: number;
   totalResidents: number;
 }
+
+export interface RolePermission {
+  id: string;
+  role: Role;
+  resource: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}

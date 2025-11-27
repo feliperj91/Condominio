@@ -5,6 +5,7 @@ import { Parking } from './components/Parking';
 import { Packages } from './components/Packages';
 import { Units } from './components/Units';
 import { People } from './components/People';
+import { AccessControl } from './components/AccessControl';
 import { storageService } from './services/storageService';
 import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from './types';
 
@@ -154,6 +155,7 @@ const App: React.FC = () => {
       case 'people': return 'Cadastro de Pessoas';
       case 'packages': return 'Encomendas';
       case 'parking': return 'Estacionamento';
+      case 'access_control': return 'Controle de Acesso';
       default: return '';
     }
   }
@@ -182,6 +184,7 @@ const App: React.FC = () => {
         {activeTab === 'packages' && <Packages packages={packages} units={units} people={people} onAddPackage={handleAddPackage} onPickup={handlePickupPackage} />}
         {activeTab === 'units' && <Units units={units} onAddUnits={handleAddUnits} onDeleteUnit={handleDeleteUnit} onDeleteBlock={handleDeleteBlock} />}
         {activeTab === 'people' && <People people={people} units={units} onAddPerson={handleAddPerson} />}
+        {activeTab === 'access_control' && <AccessControl />}
 
       </main>
     </div>
