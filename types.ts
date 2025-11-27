@@ -1,8 +1,7 @@
-export enum Role {
-  ADMIN = 'ADMIN',
-  STAFF = 'STAFF',
-  RESIDENT = 'RESIDENT',
-  VISITOR = 'VISITOR'
+export interface RoleDefinition {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 export enum IdentificationType {
@@ -20,7 +19,8 @@ export interface Unit {
 export interface Person {
   id: string;
   name: string;
-  role: Role;
+  roleId: string; // Changed from role enum to roleId
+  roleName?: string; // Helper for UI
   email: string;
   phone: string;
   unitId?: string; // If resident
@@ -76,7 +76,8 @@ export interface DashboardStats {
 
 export interface RolePermission {
   id: string;
-  role: Role;
+  roleId: string;
+  roleName?: string;
   resource: string;
   canView: boolean;
   canCreate: boolean;

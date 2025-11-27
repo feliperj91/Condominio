@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'people', label: 'Pessoas', icon: Users },
     { id: 'packages', label: 'Encomendas', icon: Package },
     { id: 'parking', label: 'Estacionamento', icon: Car },
+    { id: 'role_management', label: 'Perfis', icon: Shield },
     { id: 'access_control', label: 'Acessos', icon: Shield },
   ];
 

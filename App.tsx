@@ -6,6 +6,7 @@ import { Packages } from './components/Packages';
 import { Units } from './components/Units';
 import { People } from './components/People';
 import { AccessControl } from './components/AccessControl';
+import { RoleManagement } from './components/RoleManagement';
 import { storageService } from './services/storageService';
 import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from './types';
 
@@ -136,7 +137,7 @@ const App: React.FC = () => {
     totalSpots: spots.length,
     occupiedSpots: spots.filter(s => s.isOccupied).length,
     pendingPackages: packages.filter(p => p.status === 'WAITING_PICKUP').length,
-    totalResidents: people.filter(p => p.role === 'RESIDENT').length
+    totalResidents: people.filter(p => p.roleName === 'RESIDENT').length
   };
 
   if (isLoading) {
@@ -156,6 +157,7 @@ const App: React.FC = () => {
       case 'packages': return 'Encomendas';
       case 'parking': return 'Estacionamento';
       case 'access_control': return 'Controle de Acesso';
+      case 'role_management': return 'Perfis de Usuário';
       default: return '';
     }
   }
@@ -185,6 +187,7 @@ const App: React.FC = () => {
         {activeTab === 'units' && <Units units={units} onAddUnits={handleAddUnits} onDeleteUnit={handleDeleteUnit} onDeleteBlock={handleDeleteBlock} />}
         {activeTab === 'people' && <People people={people} units={units} onAddPerson={handleAddPerson} />}
         {activeTab === 'access_control' && <AccessControl />}
+        {activeTab === 'role_management' && <RoleManagement />}
 
       </main>
     </div>

@@ -1,5 +1,5 @@
 import { supabase } from '../src/lib/supabase';
-import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog, RolePermission } from '../types';
+import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog, RolePermission, RoleDefinition } from '../types';
 
 // Helper to map DB types to App types
 const mapUnit = (u: any): Unit => ({
@@ -9,10 +9,17 @@ const mapUnit = (u: any): Unit => ({
     floor: u.floor
 });
 
+const mapRole = (r: any): RoleDefinition => ({
+    id: r.id,
+    name: r.name,
+    description: r.description
+});
+
 const mapPerson = (p: any): Person => ({
     id: p.id,
     name: p.name,
-    role: p.role,
+    roleId: p.role_id,
+    roleName: p.roles?.name, // Join
     email: p.email,
     phone: p.phone,
     unitId: p.unit_id,
@@ -60,6 +67,24 @@ const mapLog = (l: any): AccessLog => ({
 });
 
 export const supabaseService = {
+    // Roles
+    getRoles: async (): Promise<RoleDefinition[]> => {
+        const { data, error } = await supabase.from('roles').select('*').order('name');
+        if (error) throw error;
+        return data.map(mapRole);
+    },
+    addRole: async (role: RoleDefinition): Promise<void> => {
+        const { error } = await supabase.from('roles').insert({
+            name: role.name,
+            description: role.description
+        });
+        if (error) throw error;
+    },
+    deleteRole: async (id: string): Promise<void> => {
+        const { error } = await supabase.from('roles').delete().eq('id', id);
+        if (error) throw error;
+    },
+
     // Units
     getUnits: async (): Promise<Unit[]> => {
         const { data, error } = await supabase.from('units').select('*');
@@ -109,14 +134,14 @@ export const supabaseService = {
 
     // People
     getPeople: async (): Promise<Person[]> => {
-        const { data, error } = await supabase.from('people').select('*');
+        const { data, error } = await supabase.from('people').select('*, roles(name)');
         if (error) throw error;
         return data.map(mapPerson);
     },
     addPerson: async (person: Person): Promise<void> => {
         const { error } = await supabase.from('people').insert({
             name: person.name,
-            role: person.role,
+            role_id: person.roleId,
             email: person.email,
             phone: person.phone,
             unit_id: person.unitId,
@@ -206,11 +231,12 @@ export const supabaseService = {
 
     // Permissions
     getPermissions: async (): Promise<RolePermission[]> => {
-        const { data, error } = await supabase.from('role_permissions').select('*').order('role').order('resource');
+        const { data, error } = await supabase.from('role_permissions').select('*, roles(name)').order('role_id').order('resource');
         if (error) throw error;
         return data.map((p: any) => ({
             id: p.id,
-            role: p.role,
+            roleId: p.role_id,
+            roleName: p.roles?.name,
             resource: p.resource,
             canView: p.can_view,
             canCreate: p.can_create,
@@ -226,6 +252,22 @@ export const supabaseService = {
         if (updates.canDelete !== undefined) dbUpdates.can_delete = updates.canDelete;
 
         const { error } = await supabase.from('role_permissions').update(dbUpdates).eq('id', id);
+        if (error) throw error;
+    },
+
+    // Create default permissions for a new role
+    initRolePermissions: async (roleId: string): Promise<void> => {
+        const resources = ['dashboard', 'units', 'people', 'packages', 'parking', 'access_control'];
+        const permissions = resources.map(resource => ({
+            role_id: roleId,
+            resource,
+            can_view: false,
+            can_create: false,
+            can_edit: false,
+            can_delete: false
+        }));
+
+        const { error } = await supabase.from('role_permissions').insert(permissions);
         if (error) throw error;
     }
 };

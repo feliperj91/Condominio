@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Person, Role, Unit } from '../types';
-import { Users, UserPlus, Briefcase, Home, Shield } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Person, Unit, RoleDefinition } from '../types';
+import { Users, UserPlus, Briefcase, Home } from 'lucide-react';
+import { storageService } from '../services/storageService';
 
 interface PeopleProps {
   people: Person[];
@@ -10,27 +11,48 @@ interface PeopleProps {
 
 export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) => {
   const [activeTab, setActiveTab] = useState<'RESIDENT' | 'STAFF'>('RESIDENT');
-  
+  const [roles, setRoles] = useState<RoleDefinition[]>([]);
+
   // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<Role>(Role.RESIDENT);
-  
+  const [roleId, setRoleId] = useState('');
+
   // Unit Selection State
   const [selectedBlock, setSelectedBlock] = useState('');
   const [unitId, setUnitId] = useState('');
 
+  useEffect(() => {
+    loadRoles();
+  }, []);
+
+  const loadRoles = async () => {
+    try {
+      if ('getRoles' in storageService) {
+        const data = await (storageService as any).getRoles();
+        setRoles(data);
+        // Set default role to first resident role if available
+        const residentRole = data.find((r: RoleDefinition) => r.name === 'RESIDENT');
+        if (residentRole) setRoleId(residentRole.id);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar perfis:', err);
+    }
+  };
+
   const handleAdd = () => {
-    if (!name || !email) return;
-    
+    if (!name || !email || !roleId) return;
+
+    const selectedRole = roles.find(r => r.id === roleId);
     const newPerson: Person = {
       id: Math.random().toString(36),
       name,
       email,
       phone,
-      role,
-      unitId: role === Role.RESIDENT ? unitId : undefined,
+      roleId,
+      roleName: selectedRole?.name,
+      unitId: selectedRole?.name === 'RESIDENT' ? unitId : undefined,
       avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=random`
     };
 
@@ -44,8 +66,9 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
   };
 
   const filteredPeople = people.filter(p => {
-    if (activeTab === 'RESIDENT') return p.role === Role.RESIDENT;
-    return p.role === Role.STAFF || p.role === Role.ADMIN;
+    const personRole = roles.find(r => r.id === p.roleId);
+    if (activeTab === 'RESIDENT') return personRole?.name === 'RESIDENT';
+    return personRole?.name !== 'RESIDENT' && personRole?.name !== 'VISITOR';
   });
 
   // Get unique blocks
@@ -61,29 +84,39 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
       .sort((a, b) => parseInt(a.number) - parseInt(b.number));
   }, [units, selectedBlock]);
 
+  // Filter roles for dropdown
+  const residentRoles = roles.filter(r => r.name === 'RESIDENT');
+  const staffRoles = roles.filter(r => r.name !== 'RESIDENT' && r.name !== 'VISITOR');
+
   return (
     <div className="space-y-6">
-      
+
       {/* Tabs */}
       <div className="flex space-x-4 border-b border-slate-200">
         <button
-          onClick={() => { setActiveTab('RESIDENT'); setRole(Role.RESIDENT); }}
-          className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
-            activeTab === 'RESIDENT' 
-              ? 'border-blue-600 text-blue-600' 
+          onClick={() => {
+            setActiveTab('RESIDENT');
+            const residentRole = roles.find(r => r.name === 'RESIDENT');
+            if (residentRole) setRoleId(residentRole.id);
+          }}
+          className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'RESIDENT'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
+            }`}
         >
           <Home size={16} />
           Moradores
         </button>
         <button
-          onClick={() => { setActiveTab('STAFF'); setRole(Role.STAFF); }}
-          className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
-            activeTab === 'STAFF' 
-              ? 'border-blue-600 text-blue-600' 
+          onClick={() => {
+            setActiveTab('STAFF');
+            const staffRole = roles.find(r => r.name === 'STAFF');
+            if (staffRole) setRoleId(staffRole.id);
+          }}
+          className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'STAFF'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
+            }`}
         >
           <Briefcase size={16} />
           Funcionários e Admins
@@ -93,93 +126,99 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Form */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1 max-w-md h-fit">
-           <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
-             <UserPlus className="mr-2 text-blue-600" /> 
-             Novo {activeTab === 'RESIDENT' ? 'Morador' : 'Profissional'}
-           </h3>
-           
-           <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nome Completo</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border rounded-lg p-2" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border rounded-lg p-2" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Telefone</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2" />
-              </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+            <UserPlus className="mr-2 text-blue-600" />
+            Novo {activeTab === 'RESIDENT' ? 'Morador' : 'Profissional'}
+          </h3>
 
-              {activeTab === 'RESIDENT' ? (
-                 <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Bloco</label>
-                        <select 
-                          value={selectedBlock} 
-                          onChange={e => {
-                            setSelectedBlock(e.target.value);
-                            setUnitId(''); // Reset unit when block changes
-                          }} 
-                          className="w-full border rounded-lg p-2 bg-white"
-                        >
-                          <option value="">Selecione...</option>
-                          {uniqueBlocks.map(block => (
-                            <option key={block} value={block}>{block}</option>
-                          ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Apartamento</label>
-                        <select 
-                          value={unitId} 
-                          onChange={e => setUnitId(e.target.value)} 
-                          className="w-full border rounded-lg p-2 bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                          disabled={!selectedBlock}
-                        >
-                          <option value="">Selecione...</option>
-                          {availableUnits.map(u => (
-                             <option key={u.id} value={u.id}>{u.number} ({u.floor}º)</option>
-                          ))}
-                        </select>
-                    </div>
-                 </div>
-              ) : (
-                 <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nível de Acesso</label>
-                    <select value={role} onChange={e => setRole(e.target.value as Role)} className="w-full border rounded-lg p-2 bg-white">
-                      <option value={Role.STAFF}>Funcionário (Staff)</option>
-                      <option value={Role.ADMIN}>Administrador</option>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nome Completo</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border rounded-lg p-2" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border rounded-lg p-2" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Telefone</label>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2" />
+            </div>
+
+            {activeTab === 'RESIDENT' ? (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Bloco</label>
+                    <select
+                      value={selectedBlock}
+                      onChange={e => {
+                        setSelectedBlock(e.target.value);
+                        setUnitId(''); // Reset unit when block changes
+                      }}
+                      className="w-full border rounded-lg p-2 bg-white"
+                    >
+                      <option value="">Selecione...</option>
+                      {uniqueBlocks.map(block => (
+                        <option key={block} value={block}>{block}</option>
+                      ))}
                     </select>
-                 </div>
-              )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Apartamento</label>
+                    <select
+                      value={unitId}
+                      onChange={e => setUnitId(e.target.value)}
+                      className="w-full border rounded-lg p-2 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                      disabled={!selectedBlock}
+                    >
+                      <option value="">Selecione...</option>
+                      {availableUnits.map(u => (
+                        <option key={u.id} value={u.id}>{u.number} ({u.floor}º)</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
+                <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
+                  <option value="">Selecione...</option>
+                  {staffRoles.map(r => (
+                    <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-              <button 
-                onClick={handleAdd}
-                className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 mt-4"
-              >
-                Cadastrar
-              </button>
-           </div>
+            <button
+              onClick={handleAdd}
+              className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 mt-4"
+            >
+              Cadastrar
+            </button>
+          </div>
         </div>
 
         {/* List */}
         <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-           <h3 className="text-lg font-bold text-slate-800 mb-4">Diretório ({filteredPeople.length})</h3>
-           <div className="overflow-y-auto max-h-[500px]">
-             <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Nome</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contato</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                      {activeTab === 'RESIDENT' ? 'Unidade' : 'Cargo'}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
-                  {filteredPeople.map(p => (
+          <h3 className="text-lg font-bold text-slate-800 mb-4">Diretório ({filteredPeople.length})</h3>
+          <div className="overflow-y-auto max-h-[500px]">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Nome</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contato</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
+                    {activeTab === 'RESIDENT' ? 'Unidade' : 'Perfil'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-100">
+                {filteredPeople.map(p => {
+                  const personRole = roles.find(r => r.id === p.roleId);
+                  return (
                     <tr key={p.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
@@ -192,23 +231,24 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
                         <div className="text-xs text-slate-400">{p.phone}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                         {p.role === Role.RESIDENT ? (
-                           <span className="text-sm text-slate-700 font-medium">
-                             {units.find(u => u.id === p.unitId)?.number 
-                               ? `Bl ${units.find(u => u.id === p.unitId)?.block} - ${units.find(u => u.id === p.unitId)?.number}`
-                               : 'N/A'}
-                           </span>
-                         ) : (
-                           <span className={`px-2 py-1 text-xs rounded-full font-medium ${p.role === Role.ADMIN ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                             {p.role === Role.ADMIN ? 'Administrador' : 'Funcionário'}
-                           </span>
-                         )}
+                        {personRole?.name === 'RESIDENT' ? (
+                          <span className="text-sm text-slate-700 font-medium">
+                            {units.find(u => u.id === p.unitId)?.number
+                              ? `Bl ${units.find(u => u.id === p.unitId)?.block} - ${units.find(u => u.id === p.unitId)?.number}`
+                              : 'N/A'}
+                          </span>
+                        ) : (
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${personRole?.name === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {personRole?.name || 'N/A'}
+                          </span>
+                        )}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-             </table>
-           </div>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
