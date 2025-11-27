@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../src/lib/supabase';
 import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from '../types';
 
 // Helper to map DB types to App types
