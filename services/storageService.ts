@@ -64,6 +64,12 @@ const mockService = {
     db.people.push(person);
     saveDB(db);
   },
+  updatePerson: async (person: Person): Promise<void> => {
+    await delay();
+    const db = getDB();
+    db.people = db.people.map(p => p.id === person.id ? person : p);
+    saveDB(db);
+  },
 
   // Vehicles
   getVehicles: async (): Promise<Vehicle[]> => {

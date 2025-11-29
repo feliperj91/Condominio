@@ -142,12 +142,18 @@ const App: React.FC = () => {
     setPeople(updatedPeople);
   };
 
+  const handleUpdatePerson = async (person: Person) => {
+    await storageService.updatePerson(person);
+    const updatedPeople = await storageService.getPeople();
+    setPeople(updatedPeople);
+  };
+
   // Derived Stats
   const stats = {
     totalSpots: spots.length,
     occupiedSpots: spots.filter(s => s.isOccupied).length,
     pendingPackages: packages.filter(p => p.status === 'WAITING_PICKUP').length,
-    totalResidents: people.filter(p => p.roleName === 'RESIDENT').length
+    totalResidents: people.filter(p => p.roleName === 'RESIDENT' || p.roleName === 'MORADOR').length
   };
 
   if (isLoading) {
@@ -208,7 +214,7 @@ const App: React.FC = () => {
         {activeTab === 'parking' && <Parking spots={spots} logs={logs} units={units} onEntry={handleEntry} onExit={handleExit} />}
         {activeTab === 'packages' && <Packages packages={packages} units={units} people={people} onAddPackage={handleAddPackage} onPickup={handlePickupPackage} />}
         {activeTab === 'units' && <Units units={units} onAddUnits={handleAddUnits} onDeleteUnit={handleDeleteUnit} onDeleteBlock={handleDeleteBlock} />}
-        {activeTab === 'people' && <People people={people} units={units} onAddPerson={handleAddPerson} />}
+        {activeTab === 'people' && <People people={people} units={units} onAddPerson={handleAddPerson} onUpdatePerson={handleUpdatePerson} />}
         {activeTab === 'access_control' && <AccessControl />}
         {activeTab === 'role_management' && <RoleManagement />}
 

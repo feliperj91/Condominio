@@ -141,6 +141,17 @@ export const supabaseService = {
         });
         if (error) throw error;
     },
+    updatePerson: async (person: Person): Promise<void> => {
+        const { error } = await supabase.from('people').update({
+            name: person.name,
+            role_id: person.roleId,
+            email: person.email,
+            phone: person.phone,
+            unit_id: person.unitId,
+            avatar_url: person.avatarUrl
+        }).eq('id', person.id);
+        if (error) throw error;
+    },
 
     // Vehicles
     getVehicles: async (): Promise<Vehicle[]> => {
