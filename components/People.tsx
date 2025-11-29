@@ -33,7 +33,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
         const data = await (storageService as any).getRoles();
         setRoles(data);
         // Set default role to first resident role if available
-        const residentRole = data.find((r: RoleDefinition) => r.name === 'RESIDENT');
+        const residentRole = data.find((r: RoleDefinition) => r.name === 'MORADOR' || r.name === 'RESIDENT');
         if (residentRole) setRoleId(residentRole.id);
       }
     } catch (err) {
@@ -63,7 +63,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
         phone,
         roleId,
         roleName: selectedRole?.name,
-        unitId: selectedRole?.name === 'RESIDENT' ? unitId : undefined,
+        unitId: (selectedRole?.name === 'MORADOR' || selectedRole?.name === 'RESIDENT') ? unitId : undefined,
         avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=random`
       };
 
@@ -85,8 +85,10 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
 
   const filteredPeople = people.filter(p => {
     const personRole = roles.find(r => r.id === p.roleId);
-    if (activeTab === 'RESIDENT') return personRole?.name === 'RESIDENT';
-    return personRole?.name !== 'RESIDENT' && personRole?.name !== 'VISITOR';
+    const isResident = personRole?.name === 'MORADOR' || personRole?.name === 'RESIDENT';
+
+    if (activeTab === 'RESIDENT') return isResident;
+    return !isResident && personRole?.name !== 'VISITOR';
   });
 
   // Get unique blocks
@@ -103,8 +105,8 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
   }, [units, selectedBlock]);
 
   // Filter roles for dropdown
-  const residentRoles = roles.filter(r => r.name === 'RESIDENT');
-  const staffRoles = roles.filter(r => r.name !== 'RESIDENT' && r.name !== 'VISITOR');
+  const residentRoles = roles.filter(r => r.name === 'MORADOR' || r.name === 'RESIDENT');
+  const staffRoles = roles.filter(r => r.name !== 'MORADOR' && r.name !== 'RESIDENT' && r.name !== 'VISITOR');
 
   return (
     <div className="space-y-6">
@@ -114,8 +116,13 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
         <button
           onClick={() => {
             setActiveTab('RESIDENT');
-            const residentRole = roles.find(r => r.name === 'RESIDENT');
-            if (residentRole) setRoleId(residentRole.id);
+            // Try to find MORADOR or RESIDENT
+            const residentRole = roles.find(r => r.name === 'MORADOR' || r.name === 'RESIDENT');
+            if (residentRole) {
+              setRoleId(residentRole.id);
+            } else {
+              console.warn('Perfil de MORADOR não encontrado nos roles:', roles);
+            }
           }}
           className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'RESIDENT'
             ? 'border-blue-600 text-blue-600'
@@ -128,8 +135,8 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
         <button
           onClick={() => {
             setActiveTab('STAFF');
-            const staffRole = roles.find(r => r.name === 'STAFF');
-            if (staffRole) setRoleId(staffRole.id);
+            // Reset roleId so user must select one
+            setRoleId('');
           }}
           className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'STAFF'
             ? 'border-blue-600 text-blue-600'
@@ -249,7 +256,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson }) =>
                         <div className="text-xs text-slate-400">{p.phone}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {personRole?.name === 'RESIDENT' ? (
+                        {(personRole?.name === 'MORADOR' || personRole?.name === 'RESIDENT') ? (
                           <span className="text-sm text-slate-700 font-medium">
                             {units.find(u => u.id === p.unitId)?.number
                               ? `Bl ${units.find(u => u.id === p.unitId)?.block} - ${units.find(u => u.id === p.unitId)?.number}`
