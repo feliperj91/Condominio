@@ -225,7 +225,17 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2" />
             </div>
 
-            {activeTab === 'RESIDENT' ? (
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
+              <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
+                <option value="">Selecione...</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
+                ))}
+              </select>
+            </div>
+
+            {activeTab === 'RESIDENT' && (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -260,16 +270,6 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                   </div>
                 </div>
               </>
-            ) : (
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
-                <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
-                  <option value="">Selecione...</option>
-                  {staffRoles.map(r => (
-                    <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
-                  ))}
-                </select>
-              </div>
             )}
 
             <div className="flex gap-2 mt-4">
