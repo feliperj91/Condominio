@@ -20,6 +20,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [roleId, setRoleId] = useState('');
+  const [username, setUsername] = useState('');
 
   // Unit Selection State
   const [selectedBlock, setSelectedBlock] = useState('');
@@ -49,6 +50,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     setEmail(person.email);
     setPhone(person.phone);
     setRoleId(person.roleId);
+    setUsername(person.username || '');
 
     if (person.unitId) {
       const unit = units.find(u => u.id === person.unitId);
@@ -73,6 +75,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     setName('');
     setEmail('');
     setPhone('');
+    setUsername('');
     setUnitId('');
     setSelectedBlock('');
 
@@ -108,7 +111,10 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
         roleId,
         roleName: selectedRole?.name,
         unitId: (selectedRole?.name === 'MORADOR' || selectedRole?.name === 'RESIDENT') ? unitId : undefined,
-        avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=random`
+        avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=random`,
+        username: (activeTab !== 'RESIDENT' && username) ? username : undefined,
+        password: (activeTab !== 'RESIDENT' && !editingPersonId) ? '123456' : undefined, // Default password for new staff
+        mustChangePassword: (activeTab !== 'RESIDENT' && !editingPersonId) ? true : undefined
       };
 
       if (editingPersonId) {
@@ -225,15 +231,41 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2" />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
-              <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
-                <option value="">Selecione...</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
-                ))}
-              </select>
-            </div>
+            {activeTab === 'RESIDENT' ? (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
+                <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
+                  <option value="">Selecione...</option>
+                  {residentRoles.map(r => (
+                    <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Perfil</label>
+                  <select value={roleId} onChange={e => setRoleId(e.target.value)} className="w-full border rounded-lg p-2 bg-white">
+                    <option value="">Selecione...</option>
+                    {staffRoles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name} {r.description && `- ${r.description}`}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Login de Acesso</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    className="w-full border rounded-lg p-2"
+                    placeholder="Ex: joao.silva"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Senha inicial padrão: 123456</p>
+                </div>
+              </>
+            )}
 
             {activeTab === 'RESIDENT' && (
               <>

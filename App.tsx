@@ -7,12 +7,18 @@ import { Units } from './components/Units';
 import { People } from './components/People';
 import { AccessControl } from './components/AccessControl';
 import { RoleManagement } from './components/RoleManagement';
+import { Login } from './components/Login';
+import { FirstAccess } from './components/FirstAccess';
 import { storageService } from './services/storageService';
 import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from './types';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<Person | null>(null);
+  const [showFirstAccess, setShowFirstAccess] = useState(false);
 
   // App State
   const [units, setUnits] = useState<Unit[]>([]);
@@ -22,8 +28,40 @@ const App: React.FC = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [logs, setLogs] = useState<AccessLog[]>([]);
 
-  // Load Data
+  // Auth Handlers
+  const handleLoginSuccess = (user: Person) => {
+    setCurrentUser(user);
+
+    // Check if user needs to change password
+    if (user.mustChangePassword) {
+      setShowFirstAccess(true);
+    }
+  };
+
+  const handleFirstAccessComplete = () => {
+    setShowFirstAccess(false);
+    // User is now fully authenticated
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setShowFirstAccess(false);
+    // Clear data
+    setUnits([]);
+    setPeople([]);
+    setVehicles([]);
+    setSpots([]);
+    setPackages([]);
+    setLogs([]);
+  };
+
+  // Load Data (only when authenticated)
   useEffect(() => {
+    if (!currentUser || showFirstAccess) {
+      setIsLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       setIsLoading(true);
       const [u, p, v, s, pk, l] = await Promise.all([
@@ -42,8 +80,9 @@ const App: React.FC = () => {
       setLogs(l);
       setIsLoading(false);
     };
+
     loadData();
-  }, []);
+  }, [currentUser, showFirstAccess]);
 
   // Handlers
   const handleEntry = (plate: string, unitId: string, type: string) => {
@@ -156,6 +195,16 @@ const App: React.FC = () => {
     totalResidents: people.filter(p => p.roleName === 'RESIDENT' || p.roleName === 'MORADOR').length
   };
 
+  // Show Login if not authenticated
+  if (!currentUser) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Show First Access if user needs to change password
+  if (showFirstAccess && currentUser) {
+    return <FirstAccess user={currentUser} onSuccess={handleFirstAccessComplete} />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -180,7 +229,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
 
       <main className="ml-64 flex-1 p-8">
         <header className="flex justify-between items-center mb-8">

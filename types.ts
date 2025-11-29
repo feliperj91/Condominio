@@ -25,6 +25,10 @@ export interface Person {
   phone: string;
   unitId?: string; // If resident
   avatarUrl?: string;
+  // Auth fields
+  username?: string;
+  password?: string;
+  mustChangePassword?: boolean;
 }
 
 export interface Vehicle {

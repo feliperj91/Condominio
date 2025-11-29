@@ -137,7 +137,10 @@ export const supabaseService = {
             email: person.email,
             phone: person.phone,
             unit_id: person.unitId,
-            avatar_url: person.avatarUrl
+            avatar_url: person.avatarUrl,
+            username: person.username,
+            password: person.password, // In a real app, hash this!
+            must_change_password: person.mustChangePassword
         });
         if (error) throw error;
     },
@@ -148,8 +151,37 @@ export const supabaseService = {
             email: person.email,
             phone: person.phone,
             unit_id: person.unitId,
-            avatar_url: person.avatarUrl
+            avatar_url: person.avatarUrl,
+            username: person.username,
+            // Password is updated via changePassword usually, but allowing here if needed
+            ...(person.password ? { password: person.password } : {}),
+            ...(person.mustChangePassword !== undefined ? { must_change_password: person.mustChangePassword } : {})
         }).eq('id', person.id);
+        if (error) throw error;
+    },
+
+    // Auth
+    login: async (username: string, password: string): Promise<Person | null> => {
+        const { data, error } = await supabase
+            .from('people')
+            .select('*, roles(name)')
+            .eq('username', username)
+            .eq('password', password) // Warning: Plain text check for MVP
+            .single();
+
+        if (error || !data) return null;
+
+        return {
+            ...mapPerson(data),
+            roleName: data.roles?.name
+        };
+    },
+
+    changePassword: async (id: string, newPassword: string): Promise<void> => {
+        const { error } = await supabase.from('people').update({
+            password: newPassword,
+            must_change_password: false
+        }).eq('id', id);
         if (error) throw error;
     },
 

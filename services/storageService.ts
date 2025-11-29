@@ -61,13 +61,31 @@ const mockService = {
   addPerson: async (person: Person): Promise<void> => {
     await delay();
     const db = getDB();
-    db.people.push(person);
+    db.people.push({
+      ...person,
+      mustChangePassword: true // Default for new users
+    });
     saveDB(db);
   },
   updatePerson: async (person: Person): Promise<void> => {
     await delay();
     const db = getDB();
-    db.people = db.people.map(p => p.id === person.id ? person : p);
+    db.people = db.people.map(p => p.id === person.id ? { ...p, ...person } : p);
+    saveDB(db);
+  },
+  login: async (username: string, password: string): Promise<Person | null> => {
+    await delay();
+    const db = getDB();
+    // Simple mock login
+    const user = db.people.find(p => p.username === username && p.password === password);
+    if (!user) return null;
+
+    return user;
+  },
+  changePassword: async (id: string, newPassword: string): Promise<void> => {
+    await delay();
+    const db = getDB();
+    db.people = db.people.map(p => p.id === id ? { ...p, password: newPassword, mustChangePassword: false } : p);
     saveDB(db);
   },
 

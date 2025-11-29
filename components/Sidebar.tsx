@@ -4,9 +4,10 @@ import { LayoutDashboard, Users, Package, Car, Building, LogOut, Shield } from '
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onLogout: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
     { id: 'units', label: 'Blocos e Unidades', icon: Building },
@@ -47,7 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+        >
           <LogOut size={20} />
           <span>Sair</span>
         </button>
