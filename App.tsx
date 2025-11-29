@@ -110,9 +110,14 @@ const App: React.FC = () => {
   };
 
   const handleAddUnits = async (newUnits: Unit[]) => {
-    const updatedUnits = [...units, ...newUnits];
-    setUnits(updatedUnits);
-    await storageService.saveUnits(updatedUnits);
+    // Optimistically update UI (optional, but risky if we need IDs immediately)
+    // Better: Save then reload to get real IDs
+    const allUnitsToSave = [...units, ...newUnits];
+    await storageService.saveUnits(allUnitsToSave);
+
+    // Reload to get real IDs from DB
+    const refreshedUnits = await storageService.getUnits();
+    setUnits(refreshedUnits);
   };
 
   const handleDeleteUnit = async (id: string) => {

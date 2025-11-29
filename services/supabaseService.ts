@@ -101,26 +101,18 @@ export const supabaseService = {
     },
     // Deprecated: prefer addUnit/deleteUnit
     saveUnits: async (units: Unit[]): Promise<void> => {
-        // This is a naive implementation for compatibility. 
-        // Ideally, refactor App to use granular operations.
-        // For now, we'll try to upsert new ones. Deletions won't happen here automatically to be safe.
-        const dbUnits = units.map(u => ({
-            id: u.id.length < 10 ? undefined : u.id, // Handle temp IDs if any
-            block: u.block,
-            number: u.number,
-            floor: u.floor
-        }));
-
-        // Filter out undefined IDs for upsert if they are meant to be new
-        const toUpsert = dbUnits.map(u => {
-            if (!u.id) {
+        // Prepare units for DB
+        const dbUnits = units.map(u => {
+            // If ID is temporary (starts with 'gen-') or too short, remove it to let DB generate a UUID
+            if (u.id.startsWith('gen-') || u.id.length < 10) {
                 const { id, ...rest } = u;
                 return rest;
             }
             return u;
         });
 
-        const { error } = await supabase.from('units').upsert(toUpsert);
+        // Use upsert. For items without ID, it will insert. For items with ID, it will update.
+        const { error } = await supabase.from('units').upsert(dbUnits);
         if (error) throw error;
     },
     deleteUnit: async (id: string): Promise<void> => {
