@@ -110,7 +110,18 @@ export const AccessControl: React.FC = () => {
                                         {rolePerms.map(perm => (
                                             <tr key={perm.id} className="hover:bg-slate-50">
                                                 <td className="py-3 font-medium text-slate-700 capitalize">
-                                                    {perm.resource.replace('_', ' ')}
+                                                    {(() => {
+                                                        const translations: Record<string, string> = {
+                                                            'dashboard': 'Visão Geral',
+                                                            'units': 'Unidades',
+                                                            'people': 'Pessoas',
+                                                            'packages': 'Encomendas',
+                                                            'parking': 'Estacionamento',
+                                                            'access_control': 'Controle de Acesso',
+                                                            'role_management': 'Gerenciar Perfis'
+                                                        };
+                                                        return translations[perm.resource] || perm.resource.replace('_', ' ');
+                                                    })()}
                                                 </td>
                                                 <td className="py-3 text-center">
                                                     <input
