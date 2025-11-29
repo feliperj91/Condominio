@@ -169,7 +169,20 @@ const App: React.FC = () => {
       <main className="ml-64 flex-1 p-8">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 capitalize">{getTitle()}</h2>
+            <h2 className="text-2xl font-bold text-slate-800 capitalize flex items-center gap-3">
+              {getTitle()}
+              {import.meta.env.VITE_SUPABASE_URL ? (
+                <span className="text-xs font-normal bg-green-100 text-green-700 px-2 py-1 rounded-full border border-green-200 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  Online
+                </span>
+              ) : (
+                <span className="text-xs font-normal bg-orange-100 text-orange-700 px-2 py-1 rounded-full border border-orange-200 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                  Modo Local
+                </span>
+              )}
+            </h2>
             <p className="text-slate-500">Bem-vindo(a), Administrador</p>
           </div>
           <div className="flex items-center gap-4">
