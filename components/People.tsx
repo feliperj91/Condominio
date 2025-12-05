@@ -27,6 +27,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
   // Unit Selection State
   const [selectedBlock, setSelectedBlock] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [unitInputValue, setUnitInputValue] = useState('');
 
   // Sorting and Pagination State
   const [sortField, setSortField] = useState<string | null>(null);
@@ -76,10 +77,12 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
       if (unit) {
         setSelectedBlock(unit.block);
         setUnitId(unit.id);
+        setUnitInputValue(unit.number);
       }
     } else {
       setSelectedBlock('');
       setUnitId('');
+      setUnitInputValue('');
     }
 
     // Switch tab if needed
@@ -97,6 +100,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     setUsername('');
     setUnitId('');
     setSelectedBlock('');
+    setUnitInputValue('');
 
     // Reset role to default for current tab
     if (activeTab === 'RESIDENT') {
@@ -381,6 +385,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                       onChange={e => {
                         setSelectedBlock(e.target.value);
                         setUnitId(''); // Reset unit when block changes
+                        setUnitInputValue('');
                       }}
                       className="w-full border rounded-lg p-2 bg-white"
                     >
@@ -392,17 +397,41 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Apartamento</label>
-                    <select
-                      value={unitId}
-                      onChange={e => setUnitId(e.target.value)}
-                      className="w-full border rounded-lg p-2 bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                      disabled={!selectedBlock}
-                    >
-                      <option value="">Selecione...</option>
-                      {availableUnits.map(u => (
-                        <option key={u.id} value={u.id}>{u.number} ({u.floor}º)</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        list="unit-options"
+                        value={unitInputValue}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setUnitInputValue(val);
+
+                          // Try to find exact match
+                          const match = availableUnits.find(u => u.number === val);
+                          if (match) {
+                            setUnitId(match.id);
+                          } else {
+                            setUnitId('');
+                          }
+                        }}
+                        onBlur={() => {
+                          if (unitInputValue && !unitId) {
+                            alert(`O apartamento "${unitInputValue}" não existe no Bloco ${selectedBlock}. Por favor, selecione um apartamento válido da lista.`);
+                            setUnitInputValue('');
+                          } else if (!unitInputValue) {
+                            setUnitId('');
+                          }
+                        }}
+                        className="w-full border rounded-lg p-2 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                        disabled={!selectedBlock}
+                        placeholder={selectedBlock ? "Digite ou selecione..." : "Selecione o bloco..."}
+                      />
+                      <datalist id="unit-options">
+                        {availableUnits.map(u => (
+                          <option key={u.id} value={u.number}>{u.floor}º Andar</option>
+                        ))}
+                      </datalist>
+                    </div>
                   </div>
                 </div>
               </>
