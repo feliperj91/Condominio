@@ -23,7 +23,8 @@ const mapPerson = (p: any): Person => ({
     email: p.email,
     phone: p.phone,
     unitId: p.unit_id,
-    avatarUrl: p.avatar_url
+    avatarUrl: p.avatar_url,
+    username: p.username
 });
 
 const mapVehicle = (v: any): Vehicle => ({

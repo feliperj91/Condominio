@@ -14,10 +14,10 @@ export const generateMockData = () => {
   const mockStaffRoleId = 'mock-staff-role';
 
   const people: Person[] = [
-    { id: 'p1', name: 'Ana Silva', roleId: mockAdminRoleId, roleName: 'ADMIN', email: 'admin@condominio.com.br', phone: '(11) 99999-0101', avatarUrl: 'https://picsum.photos/200' },
+    { id: 'p1', name: 'Ana Silva', roleId: mockAdminRoleId, roleName: 'ADMIN', email: 'admin@condominio.com.br', phone: '(11) 99999-0101', avatarUrl: 'https://picsum.photos/200', username: 'admin', password: '123' },
     { id: 'p2', name: 'Roberto Santos', roleId: mockResidentRoleId, roleName: 'RESIDENT', email: 'roberto@email.com', phone: '(11) 99999-0102', unitId: 'u1', avatarUrl: 'https://picsum.photos/201' },
     { id: 'p3', name: 'Carlos Dias', roleId: mockResidentRoleId, roleName: 'RESIDENT', email: 'carlos@email.com', phone: '(11) 99999-0103', unitId: 'u2', avatarUrl: 'https://picsum.photos/202' },
-    { id: 'p4', name: 'Diana Prince', roleId: mockStaffRoleId, roleName: 'STAFF', email: 'staff@condominio.com.br', phone: '(11) 99999-0199', avatarUrl: 'https://picsum.photos/203' },
+    { id: 'p4', name: 'Diana Prince', roleId: mockStaffRoleId, roleName: 'STAFF', email: 'staff@condominio.com.br', phone: '(11) 99999-0199', avatarUrl: 'https://picsum.photos/203', username: 'diana', password: '123' },
   ];
 
   const vehicles: Vehicle[] = [
