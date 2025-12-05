@@ -25,7 +25,8 @@ const mapPerson = (p: any): Person => ({
     unitId: p.unit_id,
     avatarUrl: p.avatar_url,
     username: p.username,
-    active: p.active
+    active: p.active,
+    mustChangePassword: p.must_change_password
 });
 
 const mapVehicle = (v: any): Vehicle => ({

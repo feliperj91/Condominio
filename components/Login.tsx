@@ -32,9 +32,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             } else {
                 setError("Usuário ou senha incorretos.");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError("Erro ao tentar realizar login.");
+            if (err.message === "Usuário inativo.") {
+                setError("Este usuário está inativo. Contate o administrador.");
+            } else {
+                setError("Erro ao tentar realizar login. Verifique suas credenciais.");
+            }
         } finally {
             setIsLoading(false);
         }

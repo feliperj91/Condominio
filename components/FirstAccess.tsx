@@ -43,6 +43,8 @@ export const FirstAccess: React.FC<FirstAccessProps> = ({ user, onSuccess }) => 
         } catch (err) {
             console.error('Erro ao alterar senha:', err);
             setError("Erro ao definir nova senha. Tente novamente.");
+            setPassword('');
+            setConfirmPassword('');
         } finally {
             setIsLoading(false);
         }
