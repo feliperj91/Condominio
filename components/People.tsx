@@ -173,6 +173,20 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
 
   const currentEditingPerson = people.find(p => p.id === editingPersonId);
 
+  const hasChanges = useMemo(() => {
+    if (!editingPersonId || !currentEditingPerson) return false;
+
+    return (
+      name !== currentEditingPerson.name ||
+      email !== currentEditingPerson.email ||
+      phone !== currentEditingPerson.phone ||
+      roleId !== currentEditingPerson.roleId ||
+      (activeTab === 'RESIDENT'
+        ? unitId !== (currentEditingPerson.unitId || '')
+        : username !== (currentEditingPerson.username || ''))
+    );
+  }, [editingPersonId, currentEditingPerson, name, email, phone, roleId, unitId, username, activeTab]);
+
   return (
     <div className="space-y-6">
 
@@ -362,7 +376,11 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
             <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
               <button
                 onClick={handleSubmit}
-                className={`flex-1 font-medium py-2 rounded-lg transition-colors ${editingPersonId ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                disabled={editingPersonId ? !hasChanges : false}
+                className={`flex-1 font-medium py-2 rounded-lg transition-colors ${editingPersonId
+                    ? (hasChanges ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-slate-300 text-slate-500 cursor-not-allowed')
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
               >
                 {editingPersonId ? 'Salvar Alterações' : 'Cadastrar'}
               </button>
