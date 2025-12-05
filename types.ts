@@ -29,6 +29,7 @@ export interface Person {
   username?: string;
   password?: string;
   mustChangePassword?: boolean;
+  active?: boolean; // Default true
 }
 
 export interface Vehicle {

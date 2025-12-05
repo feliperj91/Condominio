@@ -24,7 +24,8 @@ const mapPerson = (p: any): Person => ({
     phone: p.phone,
     unitId: p.unit_id,
     avatarUrl: p.avatar_url,
-    username: p.username
+    username: p.username,
+    active: p.active
 });
 
 const mapVehicle = (v: any): Vehicle => ({
@@ -141,7 +142,8 @@ export const supabaseService = {
             avatar_url: person.avatarUrl,
             username: person.username,
             password: person.password, // In a real app, hash this!
-            must_change_password: person.mustChangePassword
+            must_change_password: person.mustChangePassword,
+            active: person.active !== undefined ? person.active : true
         });
         if (error) throw error;
     },
@@ -156,8 +158,24 @@ export const supabaseService = {
             username: person.username,
             // Password is updated via changePassword usually, but allowing here if needed
             ...(person.password ? { password: person.password } : {}),
-            ...(person.mustChangePassword !== undefined ? { must_change_password: person.mustChangePassword } : {})
+            ...(person.mustChangePassword !== undefined ? { must_change_password: person.mustChangePassword } : {}),
+            ...(person.active !== undefined ? { active: person.active } : {})
         }).eq('id', person.id);
+        if (error) throw error;
+    },
+
+    resetPassword: async (id: string): Promise<void> => {
+        const { error } = await supabase.from('people').update({
+            password: '123', // Default password
+            must_change_password: true
+        }).eq('id', id);
+        if (error) throw error;
+    },
+
+    toggleActive: async (id: string, active: boolean): Promise<void> => {
+        const { error } = await supabase.from('people').update({
+            active: active
+        }).eq('id', id);
         if (error) throw error;
     },
 
@@ -171,6 +189,11 @@ export const supabaseService = {
             .single();
 
         if (error || !data) return null;
+
+        // Check if active
+        if (data.active === false) {
+            throw new Error("Usuário inativo.");
+        }
 
         return {
             ...mapPerson(data),

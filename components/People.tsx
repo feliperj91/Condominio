@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Person, Unit, RoleDefinition } from '../types';
-import { Users, UserPlus, Briefcase, Home, Edit2, X } from 'lucide-react';
+import { Users, UserPlus, Briefcase, Home, Edit2, X, Lock, Power, UserX, UserCheck } from 'lucide-react';
 import { storageService } from '../services/storageService';
 
 interface PeopleProps {
@@ -8,9 +8,11 @@ interface PeopleProps {
   units: Unit[];
   onAddPerson: (person: Person) => void;
   onUpdatePerson: (person: Person) => void;
+  onToggleActive: (id: string, active: boolean) => void;
+  onResetPassword: (id: string) => void;
 }
 
-export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUpdatePerson }) => {
+export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUpdatePerson, onToggleActive, onResetPassword }) => {
   const [activeTab, setActiveTab] = useState<'RESIDENT' | 'STAFF'>('RESIDENT');
   const [roles, setRoles] = useState<RoleDefinition[]>([]);
 
@@ -160,6 +162,8 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
   const residentRoles = roles.filter(r => r.name === 'MORADOR' || r.name === 'RESIDENT');
   const staffRoles = roles.filter(r => r.name !== 'MORADOR' && r.name !== 'RESIDENT' && r.name !== 'VISITOR');
 
+  const currentEditingPerson = people.find(p => p.id === editingPersonId);
+
   return (
     <div className="space-y-6">
 
@@ -304,7 +308,46 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
               </>
             )}
 
-            <div className="flex gap-2 mt-4">
+            {/* Account Actions for Staff */}
+            {editingPersonId && activeTab === 'STAFF' && currentEditingPerson && (
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <Lock size={16} />
+                  Segurança e Acesso
+                </h4>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      if (confirm('Tem certeza que deseja resetar a senha deste usuário?')) {
+                        onResetPassword(editingPersonId);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors border border-amber-200 text-sm font-medium"
+                  >
+                    <Lock size={16} />
+                    Resetar Senha
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const action = currentEditingPerson.active !== false ? 'inativar' : 'ativar';
+                      if (confirm(`Tem certeza que deseja ${action} este usuário?`)) {
+                        onToggleActive(editingPersonId, currentEditingPerson.active === false);
+                      }
+                    }}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border text-sm font-medium ${currentEditingPerson.active !== false
+                        ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                        : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'
+                      }`}
+                  >
+                    {currentEditingPerson.active !== false ? <UserX size={16} /> : <UserCheck size={16} />}
+                    {currentEditingPerson.active !== false ? 'Inativar Usuário' : 'Ativar Usuário'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
               <button
                 onClick={handleSubmit}
                 className={`flex-1 font-medium py-2 rounded-lg transition-colors ${editingPersonId ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
@@ -343,11 +386,20 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                 {filteredPeople.map(p => {
                   const personRole = roles.find(r => r.id === p.roleId);
                   return (
-                    <tr key={p.id} className={`hover:bg-slate-50 ${editingPersonId === p.id ? 'bg-blue-50' : ''}`}>
+                    <tr key={p.id} className={`hover:bg-slate-50 ${editingPersonId === p.id ? 'bg-blue-50' : ''} ${p.active === false ? 'opacity-60 bg-slate-50' : ''}`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <img className="h-8 w-8 rounded-full mr-3" src={p.avatarUrl} alt="" />
-                          <div className="text-sm font-medium text-slate-900">{p.name}</div>
+                          <img className={`h-8 w-8 rounded-full mr-3 ${p.active === false ? 'grayscale' : ''}`} src={p.avatarUrl} alt="" />
+                          <div>
+                            <div className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                              {p.name}
+                              {p.active === false && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase">
+                                  Inativo
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">

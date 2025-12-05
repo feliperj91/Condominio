@@ -63,7 +63,8 @@ const mockService = {
     const db = getDB();
     db.people.push({
       ...person,
-      mustChangePassword: true // Default for new users
+      mustChangePassword: true, // Default for new users
+      active: true // Default active
     });
     saveDB(db);
   },
@@ -73,12 +74,28 @@ const mockService = {
     db.people = db.people.map(p => p.id === person.id ? { ...p, ...person } : p);
     saveDB(db);
   },
+  resetPassword: async (id: string): Promise<void> => {
+    await delay();
+    const db = getDB();
+    db.people = db.people.map(p => p.id === id ? { ...p, password: '123', mustChangePassword: true } : p);
+    saveDB(db);
+  },
+  toggleActive: async (id: string, active: boolean): Promise<void> => {
+    await delay();
+    const db = getDB();
+    db.people = db.people.map(p => p.id === id ? { ...p, active: active } : p);
+    saveDB(db);
+  },
   login: async (username: string, password: string): Promise<Person | null> => {
     await delay();
     const db = getDB();
     // Simple mock login
     const user = db.people.find(p => p.username === username && p.password === password);
     if (!user) return null;
+
+    if (user.active === false) {
+      throw new Error("Usuário inativo.");
+    }
 
     return user;
   },
