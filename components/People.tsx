@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Person, Unit, RoleDefinition } from '../types';
-import { Users, UserPlus, Briefcase, Home, Edit2, X, Lock, Power, UserX, UserCheck } from 'lucide-react';
+import { Users, UserPlus, Briefcase, Home, Edit2, X, Lock, Power, UserX, UserCheck, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { storageService } from '../services/storageService';
 
 interface PeopleProps {
@@ -28,9 +28,22 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
   const [selectedBlock, setSelectedBlock] = useState('');
   const [unitId, setUnitId] = useState('');
 
+  // Sorting and Pagination State
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   useEffect(() => {
     loadRoles();
   }, []);
+
+  // Reset pagination and sort when tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setSortField(null);
+    setSortDirection('asc');
+  }, [activeTab]);
 
   const loadRoles = async () => {
     try {
@@ -153,6 +166,48 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     if (activeTab === 'RESIDENT') return isResident;
     return !isResident && personRole?.name !== 'VISITOR';
   });
+
+  // Sorting Logic
+  const sortedPeople = useMemo(() => {
+    if (!sortField) return filteredPeople;
+
+    return [...filteredPeople].sort((a, b) => {
+      let valA = '';
+      let valB = '';
+
+      if (sortField === 'name') {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (sortField === 'unit') {
+        const unitA = units.find(u => u.id === a.unitId);
+        const unitB = units.find(u => u.id === b.unitId);
+        valA = unitA ? `${unitA.block} ${unitA.number}` : '';
+        valB = unitB ? `${unitB.block} ${unitB.number}` : '';
+      } else if (sortField === 'role') {
+        const roleA = roles.find(r => r.id === a.roleId);
+        const roleB = roles.find(r => r.id === b.roleId);
+        valA = roleA?.name || '';
+        valB = roleB?.name || '';
+      }
+
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredPeople, sortField, sortDirection, units, roles]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(sortedPeople.length / itemsPerPage);
+  const paginatedPeople = sortedPeople.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   // Get unique blocks
   const uniqueBlocks = useMemo(() => {
@@ -398,22 +453,50 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
         </div>
 
         {/* List */}
-        <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800 mb-4">Diretório ({filteredPeople.length})</h3>
-          <div className="overflow-y-auto max-h-[500px]">
+        <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">
+            {activeTab === 'RESIDENT' ? 'Moradores' : 'Profissionais'} ({filteredPeople.length})
+          </h3>
+          <div className="overflow-y-auto max-h-[500px] flex-1">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Nome</th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Nome
+                      {sortField === 'name' && (
+                        sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contato</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                    {activeTab === 'RESIDENT' ? 'Unidade' : 'Perfil'}
+                  <th
+                    className={`px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase ${activeTab === 'RESIDENT' ? 'cursor-pointer hover:bg-slate-100 transition-colors' :
+                        activeTab === 'STAFF' ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''
+                      }`}
+                    onClick={() => {
+                      if (activeTab === 'RESIDENT') handleSort('unit');
+                      if (activeTab === 'STAFF') handleSort('role');
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {activeTab === 'RESIDENT' ? 'Unidade' : 'Perfil'}
+                      {(activeTab === 'RESIDENT' && sortField === 'unit') && (
+                        sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      )}
+                      {(activeTab === 'STAFF' && sortField === 'role') && (
+                        sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      )}
+                    </div>
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100">
-                {filteredPeople.map(p => {
+                {paginatedPeople.map(p => {
                   const personRole = roles.find(r => r.id === p.roleId);
                   return (
                     <tr key={p.id} className={`hover:bg-slate-50 ${editingPersonId === p.id ? 'bg-blue-50' : ''} ${p.active === false ? 'opacity-60 bg-slate-50' : ''}`}>
@@ -464,6 +547,69 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-200 pt-4 mt-4">
+              <div className="flex flex-1 justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próximo
+                </button>
+              </div>
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-slate-700">
+                    Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedPeople.length)}</span> de <span className="font-medium">{sortedPeople.length}</span> resultados
+                  </p>
+                </div>
+                <div>
+                  <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${page === currentPage
+                            ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                            : 'text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="sr-only">Próximo</span>
+                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
