@@ -11,10 +11,15 @@ import { Login } from './components/Login';
 import { FirstAccess } from './components/FirstAccess';
 import { storageService } from './services/storageService';
 import { Unit, Person, Vehicle, ParkingSpot, Package, AccessLog } from './types';
+import { Menu } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Layout State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Auth State
   const [currentUser, setCurrentUser] = useState<Person | null>(null);
@@ -248,27 +253,46 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onLogout={handleLogout}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isOpenMobile={isMobileMenuOpen}
+        closeMobile={() => setIsMobileMenuOpen(false)}
+      />
 
-      <main className="ml-64 flex-1 p-8">
+      <main className={`flex-1 p-4 lg:p-8 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
         <header className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-800 capitalize flex items-center gap-3">
-              {getTitle()}
-              {import.meta.env.VITE_SUPABASE_URL ? (
-                <span className="text-xs font-normal bg-green-100 text-green-700 px-2 py-1 rounded-full border border-green-200 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  Online
-                </span>
-              ) : (
-                <span className="text-xs font-normal bg-orange-100 text-orange-700 px-2 py-1 rounded-full border border-orange-200 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                  Modo Local
-                </span>
-              )}
-            </h2>
-            <p className="text-slate-500">Bem-vindo(a), Administrador</p>
+          <div className="flex items-center gap-4">
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden text-slate-600 hover:text-blue-600 p-1"
+            >
+              <Menu size={28} />
+            </button>
+
+            <div>
+              <h2 className="text-xl lg:text-2xl font-bold text-slate-800 capitalize flex items-center gap-3">
+                {getTitle()}
+                {import.meta.env.VITE_SUPABASE_URL ? (
+                  <span className="hidden sm:flex text-xs font-normal bg-green-100 text-green-700 px-2 py-1 rounded-full border border-green-200 items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Online
+                  </span>
+                ) : (
+                  <span className="hidden sm:flex text-xs font-normal bg-orange-100 text-orange-700 px-2 py-1 rounded-full border border-orange-200 items-center gap-1">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                    Modo Local
+                  </span>
+                )}
+              </h2>
+              <p className="text-slate-500 text-sm hidden sm:block">Bem-vindo(a), Administrador</p>
+            </div>
           </div>
+
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-slate-700">{currentUser?.name || 'Usuário'}</p>
