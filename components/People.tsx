@@ -103,6 +103,15 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
       return;
     }
 
+    // Check for duplicate username if creating new staff or updating username
+    if (activeTab === 'STAFF' && username) {
+      const existingUser = people.find(p => p.username === username && p.id !== editingPersonId);
+      if (existingUser) {
+        alert(`O login de acesso "${username}" já está em uso por outro usuário. Por favor, escolha outro.`);
+        return;
+      }
+    }
+
     try {
       const selectedRole = roles.find(r => r.id === roleId);
       const personData: Person = {
@@ -115,7 +124,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
         unitId: (selectedRole?.name === 'MORADOR' || selectedRole?.name === 'RESIDENT') ? unitId : undefined,
         avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=random`,
         username: (activeTab !== 'RESIDENT' && username) ? username : undefined,
-        password: (activeTab !== 'RESIDENT' && !editingPersonId) ? '123456' : undefined, // Default password for new staff
+        password: (activeTab !== 'RESIDENT' && !editingPersonId) ? '123' : undefined, // Default password for new staff
         mustChangePassword: (activeTab !== 'RESIDENT' && !editingPersonId) ? true : undefined
       };
 
@@ -266,7 +275,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                     className="w-full border rounded-lg p-2"
                     placeholder="Ex: joao.silva"
                   />
-                  <p className="text-xs text-slate-400 mt-1">Senha inicial padrão: 123456</p>
+                  <p className="text-xs text-slate-400 mt-1">Senha inicial padrão: 123</p>
                 </div>
               </>
             )}
@@ -339,8 +348,8 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                       }
                     }}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border text-sm font-medium ${currentEditingPerson.active !== false
-                        ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
-                        : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'
+                      ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'
                       }`}
                   >
                     {currentEditingPerson.active !== false ? <UserX size={16} /> : <UserCheck size={16} />}
