@@ -562,14 +562,14 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                   const personRole = roles.find(r => r.id === p.roleId);
                   return (
                     <tr key={p.id} className={`hover:bg-slate-50 ${editingPersonId === p.id ? 'bg-blue-50' : ''} ${p.active === false ? 'opacity-60 bg-slate-50' : ''}`}>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3">
                         <div className="flex items-center">
-                          <img className={`h-8 w-8 rounded-full mr-3 ${p.active === false ? 'grayscale' : ''}`} src={p.avatarUrl} alt="" />
-                          <div>
-                            <div className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                              {p.name}
+                          <img className={`h-8 w-8 rounded-full mr-3 flex-shrink-0 ${p.active === false ? 'grayscale' : ''}`} src={p.avatarUrl} alt="" />
+                          <div className="min-w-0 max-w-[250px]">
+                            <div className="text-sm font-medium text-slate-900">
+                              <span className="break-words">{p.name}</span>
                               {p.active === false && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase">
+                                <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase whitespace-nowrap">
                                   Inativo
                                 </span>
                               )}
