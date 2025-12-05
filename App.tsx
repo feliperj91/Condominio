@@ -271,10 +271,14 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-slate-700">Ana Silva</p>
-              <p className="text-xs text-slate-500">Síndica</p>
+              <p className="text-sm font-bold text-slate-700">{currentUser?.name || 'Usuário'}</p>
+              <p className="text-xs text-slate-500">{currentUser?.roleName || 'Acesso Restrito'}</p>
             </div>
-            <img src="https://picsum.photos/40" alt="Profile" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+            <img
+              src={currentUser?.avatarUrl || `https://ui-avatars.com/api/?name=${currentUser?.name || 'User'}&background=random`}
+              alt="Profile"
+              className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+            />
           </div>
         </header>
 
