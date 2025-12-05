@@ -330,9 +330,12 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
 
                   <button
                     onClick={() => {
-                      const action = currentEditingPerson.active !== false ? 'inativar' : 'ativar';
+                      const isActive = currentEditingPerson.active !== false;
+                      const action = isActive ? 'inativar' : 'ativar';
+                      console.log(`User clicked ${action} for ${editingPersonId}. Current active status: ${currentEditingPerson.active}`);
+
                       if (confirm(`Tem certeza que deseja ${action} este usuário?`)) {
-                        onToggleActive(editingPersonId, currentEditingPerson.active === false);
+                        onToggleActive(editingPersonId, !isActive);
                       }
                     }}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors border text-sm font-medium ${currentEditingPerson.active !== false

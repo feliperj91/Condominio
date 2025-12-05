@@ -188,9 +188,11 @@ const App: React.FC = () => {
   };
 
   const handleToggleActive = async (id: string, active: boolean) => {
+    console.log(`Toggling active status for ${id} to ${active}`);
     if ('toggleActive' in storageService) {
       await (storageService as any).toggleActive(id, active);
       const updatedPeople = await storageService.getPeople();
+      console.log('Updated people list:', updatedPeople);
       setPeople(updatedPeople);
     }
   };

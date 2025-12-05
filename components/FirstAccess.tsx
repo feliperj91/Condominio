@@ -31,15 +31,18 @@ export const FirstAccess: React.FC<FirstAccessProps> = ({ user, onSuccess }) => 
         setIsLoading(true);
 
         try {
+            console.log('Alterando senha para usuário:', user.id);
             if ('changePassword' in storageService) {
                 await (storageService as any).changePassword(user.id, password);
+                console.log('Senha alterada com sucesso');
+                alert('Senha alterada com sucesso! Você será redirecionado.');
                 onSuccess();
             } else {
                 setError("Serviço de alteração de senha indisponível.");
             }
         } catch (err) {
-            console.error(err);
-            setError("Erro ao definir nova senha.");
+            console.error('Erro ao alterar senha:', err);
+            setError("Erro ao definir nova senha. Tente novamente.");
         } finally {
             setIsLoading(false);
         }
