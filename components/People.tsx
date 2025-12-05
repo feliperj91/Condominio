@@ -271,9 +271,9 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                   <input
                     type="text"
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={e => setUsername(e.target.value.toUpperCase())}
                     className="w-full border rounded-lg p-2"
-                    placeholder="Ex: joao.silva"
+                    placeholder="Ex: JOAO.SILVA"
                   />
                   <p className="text-xs text-slate-400 mt-1">Senha inicial padrão: 123</p>
                 </div>

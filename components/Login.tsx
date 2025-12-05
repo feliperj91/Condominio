@@ -72,9 +72,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                                 <input
                                     type="text"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    onChange={(e) => setUsername(e.target.value.toUpperCase())}
                                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    placeholder="Seu usuário de acesso"
+                                    placeholder="SEU USUÁRIO DE ACESSO"
                                     required
                                 />
                             </div>
