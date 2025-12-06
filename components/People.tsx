@@ -18,6 +18,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
 
   // Form State
   const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
+  const [showMobileForm, setShowMobileForm] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -90,6 +91,8 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     const isResident = personRole?.name === 'MORADOR' || personRole?.name === 'RESIDENT';
     if (isResident && activeTab !== 'RESIDENT') setActiveTab('RESIDENT');
     if (!isResident && activeTab !== 'STAFF') setActiveTab('STAFF');
+
+    setShowMobileForm(true);
   };
 
   const handleCancelEdit = () => {
@@ -109,6 +112,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
     } else {
       setRoleId('');
     }
+    setShowMobileForm(false);
   };
 
   const handleSubmit = async () => {
@@ -312,7 +316,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Form */}
-        <div className={`bg-white p-6 rounded-2xl shadow-sm border ${editingPersonId ? 'border-blue-200 ring-2 ring-blue-100' : 'border-slate-100'} flex-1 max-w-md h-fit transition-all`}>
+        <div className={`bg-white p-6 rounded-2xl shadow-sm border ${editingPersonId ? 'border-blue-200 ring-2 ring-blue-100' : 'border-slate-100'} flex-1 max-w-md h-fit transition-all ${showMobileForm ? 'block' : 'hidden lg:block'}`}>
           <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
             <span className="flex items-center">
               {editingPersonId ? <Edit2 className="mr-2 text-blue-600" size={20} /> : <UserPlus className="mr-2 text-blue-600" size={20} />}
@@ -504,19 +508,28 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
         </div>
 
         {/* List */}
-        <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
+        <div className={`flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col ${showMobileForm ? 'hidden lg:flex' : 'flex'}`}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
             <h3 className="text-lg font-bold text-slate-800">
               {activeTab === 'RESIDENT' ? 'Moradores' : 'Profissionais'} ({filteredPeople.length})
             </h3>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-3 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="flex w-full sm:w-auto gap-2">
+              <div className="relative flex-1 sm:flex-none">
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-3 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                onClick={() => setShowMobileForm(true)}
+                className="lg:hidden bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
+                title="Cadastrar Novo"
+              >
+                <UserPlus size={20} />
+              </button>
             </div>
           </div>
           <div className="overflow-y-auto max-h-[500px] flex-1">
@@ -534,7 +547,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                       )}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contato</th>
+                  <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contato</th>
                   <th
                     className={`px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase ${activeTab === 'RESIDENT' ? 'cursor-pointer hover:bg-slate-100 transition-colors' :
                       activeTab === 'STAFF' ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''
@@ -565,7 +578,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                       <td className="px-4 py-3">
                         <div className="flex items-center">
                           <img className={`h-8 w-8 rounded-full mr-3 flex-shrink-0 ${p.active === false ? 'grayscale' : ''}`} src={p.avatarUrl} alt="" />
-                          <div className="min-w-0 max-w-[250px]">
+                          <div className="min-w-0 max-w-[150px] sm:max-w-[250px]">
                             <div className="text-sm font-medium text-slate-900">
                               <span className="break-words">{p.name}</span>
                               {p.active === false && (
@@ -577,7 +590,7 @@ export const People: React.FC<PeopleProps> = ({ people, units, onAddPerson, onUp
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="hidden sm:table-cell px-4 py-3 whitespace-nowrap">
                         <div className="text-sm text-slate-500">{p.email}</div>
                         <div className="text-xs text-slate-400">{p.phone}</div>
                       </td>
